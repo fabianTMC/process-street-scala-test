@@ -1,26 +1,13 @@
 import akka.actor.ActorSystem
-import controllers.{AsyncController, CountController}
+import controllers.{AsyncController}
 import org.scalatestplus.play._
 import play.api.test.Helpers._
 import play.api.test.FakeRequest
-import services.Counter
 
 /**
  * Unit tests can run without a full Play application.
  */
 class UnitSpec extends PlaySpec {
-
-  "CountController" should {
-
-    "return a valid result with action" in {
-      val counter: Counter = new Counter {
-        override def nextCount(): Int = 49
-      }
-      val controller = new CountController(stubControllerComponents(), counter)
-      val result = controller.count(FakeRequest())
-      contentAsString(result) must equal("49")
-    }
-  }
 
   "AsyncController" should {
 
