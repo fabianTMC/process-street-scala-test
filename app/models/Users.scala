@@ -19,8 +19,8 @@ case class Users(
     verificationHash: String,
     verified: Boolean,
     createdOn: Date,
-    updatedOn: Date,
-    verifiedOn: Date
+    updatedOn: Option[Date],
+    verifiedOn: Option[Date]
 )
 
 @javax.inject.Singleton
@@ -39,8 +39,8 @@ class UsersModel @Inject()(dbapi: DBApi)(implicit ec: DatabaseExecutionContext) 
       get[String]("users.verificationHash") ~
       get[Boolean]("users.verified") ~
       get[Date]("users.createdOn") ~
-      get[Date]("users.updatedOn") ~
-      get[Date]("users.verifiedOn") map {
+      get[Option[Date]]("users.updatedOn") ~
+      get[Option[Date]]("users.verifiedOn") map {
       case uuid ~ email ~ password ~ salt ~ alg ~ verificationHash ~ verified ~ createdOn ~ updatedOn ~ verifiedOn =>
         Users(uuid, email, password, salt, alg, verificationHash, verified, createdOn, updatedOn, verifiedOn)
     }
@@ -50,7 +50,7 @@ class UsersModel @Inject()(dbapi: DBApi)(implicit ec: DatabaseExecutionContext) 
 
   def findAll(): Seq[Users] = {
     db.withConnection { implicit connection =>
-      SQL("select uuid, email from users").as(simple.*)
+      SQL("select * from users").as(simple.*)
     }
   }
 

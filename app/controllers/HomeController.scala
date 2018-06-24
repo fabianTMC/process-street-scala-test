@@ -5,6 +5,8 @@ import javax.inject._
 import play.api.mvc._
 import models._
 
+import play.api.libs.json.Json._
+
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
@@ -21,7 +23,8 @@ class HomeController @Inject()(cc: ControllerComponents, usersModel: UsersModel)
    */
   def index = Action {
     val users = usersModel.findAll()
-    Ok("Hello")
+    implicit val userFormat = format[Users]
+    Ok(stringify(toJson(users))).as("application/json")
   }
 
 }
