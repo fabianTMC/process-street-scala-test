@@ -16,4 +16,7 @@ libraryDependencies += "org.playframework.anorm" %% "anorm" % "2.6.1"
 libraryDependencies += "org.postgresql" % "postgresql" % "42.2.2"
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
 
+libraryDependencies += "com.jason-goodwin" %% "authentikat-jwt" % "0.4.5"
+libraryDependencies += "org.mindrot" % "jbcrypt" % "0.3m"
+
 javaOptions in Test += "-Dconfig.file=conf/application.test.conf"

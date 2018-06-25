@@ -9,8 +9,8 @@ import anorm._
 import anorm.SqlParser._
 
 import scala.concurrent.Future
-import java.security.MessageDigest
-import java.math.BigInteger
+
+import utilities.PasswordHelper
 
 import java.util.UUID
 
@@ -70,9 +70,10 @@ class UsersModel @Inject()(db: Database)(implicit ec: DatabaseExecutionContext) 
  *  @param user [Required] a user object representing the new user to be created. The uuid, password, salt, alg and verificationHash fields will get overwritten in the database.
  */
   def create(user: Users): Future[Option[Long]] = Future {
-    val salt = scala.util.Random.alphanumeric.take(16).mkString
+    val salt = PasswordHelper.generateSalt().toString()
     val alg = "SHA-256"
-    val password = String.format("%032x", new BigInteger(1, MessageDigest.getInstance(alg).digest("${user.password}-${salt}".getBytes("UTF-8"))))
+    val password = PasswordHelper.hashPassword(user.password, salt).toString()
+
     val verificationHash = UUID.randomUUID.toString()
     val uuid = UUID.randomUUID.toString()
 
@@ -119,6 +120,17 @@ class UsersModel @Inject()(db: Database)(implicit ec: DatabaseExecutionContext) 
   def findAll(): Future[Seq[Users]] = Future {
     db.withConnection { implicit connection =>
       SQL("select * from users").as(simple.*)
+    }
+  }(ec)
+
+  /** Find a user by the given email address
+  * @param email String the email address to search by
+ */
+  def findByEmail(email: String): Future[Seq[Users]] = Future {
+    db.withConnection { implicit connection =>
+      SQL("select * from users WHERE email = {email}").on(
+        'email -> email,
+      ).as(simple.*)
     }
   }(ec)
 

@@ -4,7 +4,7 @@ import javax.inject._
 
 import play.api.mvc._
 import models._
-import utilities.Validations
+import utilities._
 
 import play.api.libs.json._
 
@@ -46,32 +46,72 @@ class UsersController @Inject()(cc: ControllerComponents, usersModel: UsersModel
           usersModel.create(Users(email = email, password = password)).flatMap {
             result => {
               if(result == Some(-1)) {
-                Future(Ok("Duplicate email"))
+                Future(Ok(Json.stringify(Json.obj(("success", false), ("error", "This email address is already signed up")))).as("application/json"))
               } else {
-                Future(Ok("All okay"))
+                Future(Ok(Json.stringify(Json.obj(("success", true)))).as("application/json"))
               }
             }
           }.recover {
             case e: Exception => {
               e.printStackTrace()
-              BadRequest("Nope")
+              InternalServerError(Json.stringify(Json.obj(("success", false), ("error", "An internal server error occurred")))).as("application/json")
             }
           }
         } else {
-          Future(BadRequest("Bad password"))
+          Future(Ok(Json.stringify(Json.obj(("success", false), ("error", "Invalid password provided")))).as("application/json"))
         }
       } catch {
         case e @ (_ : play.api.libs.json.JsResultException | _ : java.util.NoSuchElementException) => {
-          Future(BadRequest("Some fields are missing from the json body"))
+          Future(BadRequest(Json.stringify(Json.obj(("success", false), ("error", "Fields are missing from the JSON body")))).as("application/json"))
         }
 
         case e:Exception => {
           e.printStackTrace()
-          Future(BadRequest("An unknown error occurred"))
+          Future(InternalServerError(Json.stringify(Json.obj(("success", false), ("error", "An internal server error occurred")))).as("application/json"))
         }
       }
     }.getOrElse {
-      Future(BadRequest("Expecting application/json request body"))
+      Future(BadRequest(Json.stringify(Json.obj(("success", false), ("error", "Invalid request body")))).as("application/json"))
+    }
+  }
+
+  /**
+   * Login a user
+   */
+  def login = Action.async { implicit request =>
+    val body: AnyContent = request.body
+    val jsonBody: Option[JsValue] = body.asJson
+
+    jsonBody.map { json =>
+      try {
+        val email = (json \ "email").as[String]
+        val password = (json \ "password").as[String]
+
+        usersModel.findByEmail(email).map { result =>
+          if(result.size == 1) {
+            if(PasswordHelper.hashPassword(password, result(0).salt).equals(result(0).password)) {
+              val token = JWT.createToken(Json.stringify(Json.obj(("uuid", result(0).uuid))).toString())
+
+              Ok(Json.stringify(Json.obj(("success", true), ("token", token)))).as("application/json")
+            } else {
+              Ok(Json.stringify(Json.obj(("success", false), ("error", "Invalid login credentials")))).as("application/json")
+            }
+          } else {
+            Ok(Json.stringify(Json.obj(("success", false), ("error", "Invalid login credentials")))).as("application/json")
+          }
+        }
+      } catch {
+        case e @ (_ : play.api.libs.json.JsResultException | _ : java.util.NoSuchElementException) => {
+          Future(BadRequest(Json.stringify(Json.obj(("success", false), ("error", "Fields are missing from the JSON body")))).as("application/json"))
+        }
+
+        case e:Exception => {
+          e.printStackTrace()
+          Future(InternalServerError(Json.stringify(Json.obj(("success", false), ("error", "An internal server error occurred")))).as("application/json"))
+        }
+      }
+    }.getOrElse {
+      Future(BadRequest(Json.stringify(Json.obj(("success", false), ("error", "Invalid request body")))).as("application/json"))
     }
   }
 }

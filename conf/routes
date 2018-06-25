@@ -6,6 +6,11 @@
 GET     /                           controllers.UsersController.index
 # Create a new user
 POST     /                           controllers.UsersController.create
+# Login a user
+POST     /login                           controllers.UsersController.login
+
+# [Authenticated Route] List all todos
+POST     /todos/                           controllers.TodoController.index
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(file)
