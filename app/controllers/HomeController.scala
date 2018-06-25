@@ -6,6 +6,9 @@ import play.api.mvc._
 import models._
 
 import play.api.libs.json.Json._
+import java.util.UUID
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -21,10 +24,10 @@ class HomeController @Inject()(cc: ControllerComponents, usersModel: UsersModel)
    * will be called when the application receives a `GET` request with
    * a path of `/`.
    */
-  def index = Action {
-    val users = usersModel.findAll()
-    implicit val userFormat = format[Users]
-    Ok(stringify(toJson(users))).as("application/json")
-  }
-
+  def index = Action.async { implicit request =>
+     implicit val userFormat = format[Users]
+     usersModel.findAll().map { result =>
+        Ok(stringify(toJson(result))).as("application/json")
+      }
+    }
 }
