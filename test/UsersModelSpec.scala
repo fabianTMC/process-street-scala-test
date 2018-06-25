@@ -21,7 +21,23 @@ class UsersModelSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures
       whenReady(usersModel.create(Users(email = "test@test.com", password = "password"))) { result =>
         whenReady(usersModel.findAll()) { users =>
           users.size must equal(1)
+          users(0).uuid must not be empty
+          users(0).email must equal("test@test.com")
+          users(0).password must not equal("password")
+          users(0).salt must not equal("")
+          users(0).alg must equal("SHA-256")
+          users(0).verificationHash must not equal("")
+          users(0).verified must equal(false)
+          users(0).createdOn must not equal(None)
+          users(0).updatedOn must equal(None)
+          users(0).verifiedOn must equal(None)
         }
+      }
+    }
+
+    "fail to create a new user because of a duplicate email address" in {
+      whenReady(usersModel.create(Users(email = "test@test.com", password = "password"))) { result =>
+        result must equal(Some(-1))
       }
     }
   }

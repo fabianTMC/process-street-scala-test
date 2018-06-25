@@ -13,6 +13,8 @@ import java.security.MessageDigest
 import java.math.BigInteger
 
 import java.util.UUID
+
+import org.postgresql.util.PSQLException
  
 /** A user that has signed up to the application. 
  *
@@ -75,6 +77,7 @@ class UsersModel @Inject()(db: Database)(implicit ec: DatabaseExecutionContext) 
     val uuid = UUID.randomUUID.toString()
 
     db.withConnection { implicit connection =>
+     try {
       SQL("""
         insert into users (uuid, email, password, salt, alg, verificationHash, verified) 
         values ({uuid}, {email}, {password}, {salt}, {alg}, {verificationHash}, false)
@@ -84,8 +87,30 @@ class UsersModel @Inject()(db: Database)(implicit ec: DatabaseExecutionContext) 
         'password -> password,
         'salt -> salt,
         'alg -> alg,
-        'verificationHash -> verificationHash,
+        'verificationHash -> verificationHash
       ).executeInsert()
+     } catch {
+        case e: PSQLException => {
+          if(e.getSQLState == "23505") {
+            Some(-1.toLong)
+          } else {
+            None
+          }
+        }
+
+        // This is for the test libary
+        case e: org.h2.jdbc.JdbcSQLException => {
+          if(e.getSQLState == "23505") {
+            Some(-1.toLong)
+          } else {
+            None
+          }
+        }
+
+        case e: Exception => {
+          None
+        }
+     }
     }
   }(ec)
 
