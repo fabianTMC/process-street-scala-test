@@ -4,7 +4,7 @@
 
 CREATE TABLE users(
     uuid VARCHAR(36) PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     password TEXT NOT NULL,
     salt TEXT NOT NULL,
     alg VARCHAR(10) NOT NULL,

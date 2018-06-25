@@ -6,7 +6,6 @@ import play.api.mvc._
 import models._
 
 import play.api.libs.json.Json._
-import java.util.UUID
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,6 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class HomeController @Inject()(cc: ControllerComponents, usersModel: UsersModel) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
+    implicit val userFormat = format[Users]
 
   /**
    * Create an Action to render an HTML page with a welcome message.
@@ -25,8 +25,7 @@ class HomeController @Inject()(cc: ControllerComponents, usersModel: UsersModel)
    * a path of `/`.
    */
   def index = Action.async { implicit request =>
-     implicit val userFormat = format[Users]
-     usersModel.findAll().map { result =>
+      usersModel.findAll().map { result =>
         Ok(stringify(toJson(result))).as("application/json")
       }
     }
