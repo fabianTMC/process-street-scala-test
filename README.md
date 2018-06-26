@@ -83,7 +83,7 @@ And then go to <http://localhost:9000> to see the running web application.
 }
 ```
 
-#### Edit todo (Requires JWT in Authorization Header)
+#### Edit comment (Requires JWT in Authorization Header)
 `POST /comments/edit`
 ```json
 {
@@ -92,7 +92,7 @@ And then go to <http://localhost:9000> to see the running web application.
 }
 ```
 
-#### Delete todo (Requires JWT in Authorization Header)
+#### Delete comment (Requires JWT in Authorization Header)
 `POST /comments/delete`
 ```json
 {
