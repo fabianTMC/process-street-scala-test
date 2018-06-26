@@ -2,17 +2,27 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# List all users
-GET     /                           controllers.UsersController.index
 # Create a new user
-POST     /                           controllers.UsersController.create
+POST     /create                           controllers.UsersController.create
 # Login a user
 POST     /login                           controllers.UsersController.login
 
 # [Authenticated Route] List all todos
-GET     /todos/                           controllers.TodoController.index
-POST     /todos/                           controllers.TodoController.create
+POST     /todos/list                           controllers.TodoController.index
+# [Authenticated Route] Create a todo
+POST     /todos/create                           controllers.TodoController.create
+# [Authenticated Route] Edit a todo
+POST     /todos/edit                           controllers.TodoController.edit
+# [Authenticated Route] Mark a todo as checked
 POST     /todos/toggleChecked                           controllers.TodoController.toggleChecked
+# [Authenticated Route] Delete a todo
+POST     /todos/delete                           controllers.TodoController.delete
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(file)
+# [Authenticated Route] List all comments
+POST     /comments/list                           controllers.CommentsController.index
+# [Authenticated Route] Create a comment
+POST     /comments/create                           controllers.CommentsController.create
+# [Authenticated Route] Edit a comment
+POST     /comments/edit                           controllers.CommentsController.edit
+# [Authenticated Route] Delete a comment
+POST     /comments/delete                          controllers.CommentsController.delete

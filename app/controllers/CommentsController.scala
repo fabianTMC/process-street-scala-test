@@ -17,12 +17,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * This controller handles all the operations that are made on the Users model
  */
 @Singleton
-class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTAuthentication, todosModel: TodosModel) (implicit assetsFinder: AssetsFinder)
+class CommentsController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTAuthentication, commentsModel: CommentsModel) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
-    implicit val todosFormat = Json.format[Todos]
+    implicit val commentsFormat = Json.format[Comments]
 
   /**
-   * Create a todo
+   * Create a comment
    */
   def create = jwtAuthentication.async { implicit request =>
     val body: AnyContent = request.body
@@ -31,8 +31,9 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
     jsonBody.map { json =>
       try {
         val text = (json \ "text").as[String]
+        val todo = (json \ "todo").as[String]
 
-        todosModel.create(Todos(text = text, belongsToUser = request.userInfo.uuid)).flatMap {
+        commentsModel.create(Comments(text = text, belongsToTodo = todo, belongsToUser = request.userInfo.uuid)).flatMap {
           result => {
             if(result == Some(-2)) {
               Future(Ok(Json.stringify(Json.obj(("success", false), ("error", "Invalid user")))).as("application/json"))
@@ -62,37 +63,18 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
   }
 
   /**
-  * List all the non deleted todos belonging to the user
+  * List all the non deleted comments belonging to the user
   */
   def index = jwtAuthentication.async { implicit request =>
-    todosModel.findByUser(request.userInfo.uuid).map { result =>
-      Ok(Json.stringify(Json.toJson(result))).as("application/json")
-    }
-  }
-
-  /**
-   * Mark a todo as checked or not
-   */
-  def toggleChecked = jwtAuthentication.async { implicit request =>
     val body: AnyContent = request.body
     val jsonBody: Option[JsValue] = body.asJson
 
     jsonBody.map { json =>
       try {
-        val uuid = (json \ "uuid").as[String]
-        val checked = (json \ "checked").as[Boolean]
+        val todo = (json \ "todo").as[String]
 
-        println(request.userInfo.uuid)
-
-        todosModel.toggleCompleted(uuid, request.userInfo.uuid, checked).flatMap {
-          result => {
-            Future(Ok(Json.stringify(Json.obj(("success", true)))).as("application/json"))
-          }
-        }.recover {
-          case e: Exception => {
-            e.printStackTrace()
-            InternalServerError(Json.stringify(Json.obj(("success", false), ("error", "An internal server error occurred")))).as("application/json")
-          }
+        commentsModel.findByTodo(todo).map { result =>
+          Ok(Json.stringify(Json.toJson(result))).as("application/json")
         }
       } catch {
         case e @ (_ : play.api.libs.json.JsResultException | _ : java.util.NoSuchElementException) => {
@@ -110,7 +92,7 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
   }
 
   /**
-   * Change the text of a todo that was not edited
+   * Change the text of a comment that was not edited
    */
   def edit = jwtAuthentication.async { implicit request =>
     val body: AnyContent = request.body
@@ -119,9 +101,9 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
     jsonBody.map { json =>
       try {
         val uuid = (json \ "uuid").as[String]
-        val checked = (json \ "checked").as[Boolean]
+        val text = (json \ "text").as[String]
 
-        todosModel.toggleCompleted(uuid, request.userInfo.uuid, checked).flatMap {
+        commentsModel.edit(uuid, request.userInfo.uuid, text).flatMap {
           result => {
             Future(Ok(Json.stringify(Json.obj(("success", true)))).as("application/json"))
           }
@@ -157,7 +139,7 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
       try {
         val uuid = (json \ "uuid").as[String]
 
-        todosModel.delete(uuid, request.userInfo.uuid).flatMap {
+        commentsModel.delete(uuid, request.userInfo.uuid).flatMap {
           result => {
             Future(Ok(Json.stringify(Json.obj(("success", true)))).as("application/json"))
           }
