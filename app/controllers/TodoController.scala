@@ -119,9 +119,9 @@ class TodoController @Inject()(cc: ControllerComponents, jwtAuthentication: JWTA
     jsonBody.map { json =>
       try {
         val uuid = (json \ "uuid").as[String]
-        val checked = (json \ "checked").as[Boolean]
+        val text = (json \ "text").as[String]
 
-        todosModel.toggleCompleted(uuid, request.userInfo.uuid, checked).flatMap {
+        todosModel.edit(uuid, request.userInfo.uuid, text).flatMap {
           result => {
             Future(Ok(Json.stringify(Json.obj(("success", true)))).as("application/json"))
           }

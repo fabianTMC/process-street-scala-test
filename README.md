@@ -1,57 +1,101 @@
-# play-scala-starter-example
-
-[<img src="https://img.shields.io/travis/playframework/play-scala-starter-example.svg"/>](https://travis-ci.org/playframework/play-scala-starter-example)
-
-This is a starter application that shows how Play works.  Please see the documentation at <https://www.playframework.com/documentation/latest/Home> for more details.
+# process-street-scala-test
 
 ## Running
 
-Run this using [sbt](http://www.scala-sbt.org/).  If you downloaded this project from <http://www.playframework.com/download> then you'll find a prepackaged version of sbt in the project directory:
-
-```bash
-sbt run
-```
+Please update the `db.default` configuration in `application.conf`
 
 And then go to <http://localhost:9000> to see the running web application.
 
-There are several demonstration files available in this template.
+## API Details
 
-## Controllers
+### Users
+#### Create User
+`POST /create`
+```json
+{
+	"email": "email@email.com",
+	"password": "password123"
+}
+```
 
-- HomeController.scala:
+#### Login User
+`POST /login`
+```json
+{
+	"email": "email@email.com",
+	"password": "password123"
+}
+```
 
-  Shows how to handle simple HTTP requests.
+### Todos
+#### Create todo (Requires JWT in Authorization Header)
+`POST /todos/create`
+```json
+{
+	"text": "Hello World"
+}
+```
 
-- AsyncController.scala:
+#### List all todos of the user (Requires JWT in Authorization Header)
+`POST /todos/list`
 
-  Shows how to do asynchronous programming when handling a request.
+#### Edit todo (Requires JWT in Authorization Header)
+`POST /todos/edit`
+```json
+{
+	"text": "Hello World Updated",
+  "uuid": "uuid-of-todo"
+}
+```
 
-- CountController.scala:
+#### Toggle todo checked (Requires JWT in Authorization Header)
+`POST /todos/toggleChecked`
+```json
+{
+	"checked": true|false,
+  "uuid": "uuid-of-todo"
+}
+```
 
-  Shows how to inject a component into a controller and use the component when
-  handling requests.
+#### Delete todo (Requires JWT in Authorization Header)
+`POST /todos/delete`
+```json
+{
+  "uuid": "uuid-of-todo"
+}
+```
 
-## Components
+### Comments
+#### Create comment (Requires JWT in Authorization Header)
+`POST /comments/create`
+```json
+{
+	"text": "First Comment",
+  "todo": "uuid-of-todo"
+}
+```
 
-- Module.scala:
+#### List all comments of the given todo (Requires JWT in Authorization Header)
+`POST /comments/list`
+```json
+{
+  "todo": "uuid-of-todo"
+}
+```
 
-  Shows how to use Guice to bind all the components needed by your application.
+#### Edit todo (Requires JWT in Authorization Header)
+`POST /comments/edit`
+```json
+{
+	"text": "Hello World Updated",
+  "uuid": "uuid-of-comment"
+}
+```
 
-- Counter.scala:
-
-  An example of a component that contains state, in this case a simple counter.
-
-- ApplicationTimer.scala:
-
-  An example of a component that starts when the application starts and stops
-  when the application stops.
-
-## Filters
-
-- Filters.scala:
-
-  Creates the list of HTTP filters used by your application.
-
-- ExampleFilter.scala
-
-  A simple filter that adds a header to every response.
+#### Delete todo (Requires JWT in Authorization Header)
+`POST /comments/delete`
+```json
+{
+  "uuid": "uuid-of-comment"
+}
+```
