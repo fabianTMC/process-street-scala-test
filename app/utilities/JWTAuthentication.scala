@@ -12,10 +12,14 @@ import utilities.JWT
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 
-case class User(email: String, userId: String) 
+case class User(uuid: String) 
+case class UserRequest[A](val userInfo: User, val request: Request[A]) extends WrappedRequest[A](request)
 
-class JWTAuthentication @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilderImpl(parser) {
-   override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]): Future[Result] = {
+class JWTAuthentication @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext) extends ActionBuilder[UserRequest, AnyContent] {
+   override protected def executionContext: ExecutionContext = ec
+   override def parser: BodyParser[AnyContent] = parser
+
+   override def invokeBlock[A](request: Request[A], block: (UserRequest[A]) => Future[Result]): Future[Result] = {
     implicit val req = request
 
     var jwtToken = request.headers.get("Authorization").getOrElse("")
@@ -31,8 +35,8 @@ class JWTAuthentication @Inject() (parser: BodyParsers.Default)(implicit ec: Exe
         val userInfo = Json.parse(payload).validate[User].get
 
         // Replace this block with data source
-        if (userInfo.email == "test@example.com" && userInfo.userId == "userId123") {
-          block(request)
+        if (true) {
+          block(new UserRequest[A](userInfo, request))
         } else {
           Future(Unauthorized(Json.stringify(Json.obj(("success", false), ("error", "Invalid credentials")))).as("application/json"))
         }

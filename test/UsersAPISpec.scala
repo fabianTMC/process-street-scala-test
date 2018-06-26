@@ -10,7 +10,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.libs.json._
 import models._
 
-class FunctionalSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures {
+class UsersAPISpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures {
 
   def usersController = app.injector.instanceOf(classOf[UsersController])
   implicit val payloadRead = Json.reads[Users]
